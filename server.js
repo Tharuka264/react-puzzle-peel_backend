@@ -16,7 +16,6 @@ const db = mysql.createConnection({
 });
 
 app.post("/addUser", async (req, res) => {
-  console.log(req.body);
   const { email, userName, password } = req.body;
 
   if (!email || !userName || !password) {
@@ -75,6 +74,18 @@ app.post("/login", (req, res) => {
         return res.status(400).json({ error: "Invalid credentials" });
       }
     });
+  });
+});
+
+app.get("/getScores", (req, res) => {
+  const query =
+    "SELECT email, userName, highest_score FROM users ORDER BY highest_score DESC";
+  db.query(query, (err, results) => {
+    if (err) {
+      res.status(500).json({ message: "Error fetching users", error: err });
+    } else {
+      res.status(200).json(results);
+    }
   });
 });
 
