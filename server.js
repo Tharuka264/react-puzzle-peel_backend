@@ -89,4 +89,44 @@ app.get("/getScores", (req, res) => {
   });
 });
 
+app.put("/updateScore", (req, res) => {
+  const { email, newScore } = req.body;
+
+  if (!email || newScore === undefined) {
+    return res.status(400).json({ message: "Email and newScore are required" });
+  }
+
+  const selectQuery = "SELECT highest_score FROM users WHERE email = ?";
+  db.query(selectQuery, [email], (err, results) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ message: "Error fetching current score", error: err });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const currentScore = results[0].highest_score;
+
+    if (newScore > currentScore) {
+      const updateQuery = "UPDATE users SET highest_score = ? WHERE email = ?";
+      db.query(updateQuery, [newScore, email], (err, updateResult) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ message: "Error updating score", error: err });
+        }
+
+        return res.status(200).json({ message: "Score updated successfully" });
+      });
+    } else {
+      return res
+        .status(200)
+        .json({ message: "New score is not higher than current score" });
+    }
+  });
+});
+
 app.listen(8081, () => console.log("Server Running...."));
